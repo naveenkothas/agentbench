@@ -1,0 +1,41 @@
+name: Tool Calling Evaluation
+description: >
+  Evaluates whether the agent calls the correct tools with the right arguments.
+  Requires an OpenAI-compatible agent with tool definitions.
+
+agent:
+  type: echo  # Replace with: openai, anthropic, http, etc.
+  response_template: "I'll look up your order status. Echo: {input}"
+
+evaluators:
+  - contains
+
+cases:
+  - id: order-lookup-001
+    input: "Where is my order #12345?"
+    expected:
+      contains:
+        - "order"
+    # When using an LLM adapter, add:
+    # tool_call:
+    #   name: get_order_status
+    #   arguments:
+    #     order_id: "12345"
+
+  - id: weather-001
+    input: "What's the weather like in Dallas?"
+    expected:
+      contains:
+        - "weather"
+    # tool_call:
+    #   name: get_weather
+    #   arguments:
+    #     city: "Dallas"
+
+  - id: account-001
+    input: "What's my account balance?"
+    expected:
+      contains:
+        - "account"
+    # tool_call:
+    #   name: get_account_balance

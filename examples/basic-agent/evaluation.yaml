@@ -1,0 +1,49 @@
+name: Basic Agent Demo
+description: Runs without any API keys using the built-in echo adapter.
+
+agent:
+  type: echo
+  response_template: "Thank you for reaching out about: {input}. Here is how I can help."
+
+evaluators:
+  - contains
+  - latency
+
+cases:
+  - id: support-001
+    input: "I need help with my account"
+    expected:
+      contains:
+        - "help"
+      max_latency_ms: 500
+
+  - id: support-002
+    input: "How do I reset my password?"
+    expected:
+      contains:
+        - "help"
+      max_latency_ms: 500
+
+  - id: support-003
+    input: "I want to upgrade my plan"
+    expected:
+      contains:
+        - "help"
+        - "plan"
+      max_latency_ms: 500
+
+  - id: support-004
+    input: "Cancel my subscription"
+    expected:
+      contains:
+        - "help"
+      not_contains:
+        - "cannot"
+      max_latency_ms: 500
+
+  - id: support-005
+    input: "Where can I find my invoice?"
+    expected:
+      contains:
+        - "help"
+      max_latency_ms: 500

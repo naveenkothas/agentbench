@@ -1,0 +1,27 @@
+version: "3.9"
+
+services:
+  agentbench:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./evals:/app/evals
+      - ./agentbench_data:/app/agentbench_data
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///./agentbench_data/agentbench.db
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+
+  # Optional: run evaluations on startup
+  eval:
+    build: .
+    command: agentbench run evals/
+    volumes:
+      - ./evals:/app/evals
+      - ./agentbench_data:/app/agentbench_data
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///./agentbench_data/agentbench.db
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    profiles:
+      - eval

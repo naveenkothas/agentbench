@@ -1,0 +1,47 @@
+name: Agent Evaluation
+
+# Example workflow for projects using AgentBench.
+# Copy this file to your own repository and configure as needed.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Run nightly evaluation at 02:00 UTC
+    - cron: "0 2 * * *"
+
+jobs:
+  evaluate:
+    name: Evaluate Agent Quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install AgentBench
+        run: pip install "agentbench[openai]"
+
+      - name: Run all evaluation suites
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: agentbench run evals/
+
+      - name: Enforce quality gate (90% minimum)
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: agentbench validate evals/ --minimum-score 90
+
+      - name: Upload evaluation artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agentbench-results
+          path: .agentbench/
+          retention-days: 30

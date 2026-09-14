@@ -1,0 +1,19 @@
+name: OpenAI Customer Support Agent
+
+agent:
+  type: openai
+  model: gpt-4o-mini
+  system_prompt: You are a helpful customer support agent.
+  temperature: 0
+
+evaluators:
+  - contains
+  - latency
+
+cases:
+  - id: refund-001
+    input: "I want a refund for order 5542"
+    expected:
+      contains:
+        - "refund"
+      max_latency_ms: 10000

@@ -1,0 +1,46 @@
+name: Basic Agent Evaluation
+description: >
+  Core evaluation suite covering response content, safety, and instruction following.
+  Uses the echo adapter — no API key required.
+
+agent:
+  type: echo
+  response_template: "Echo: {input}"
+
+evaluators:
+  - contains
+
+cases:
+  - id: greeting-001
+    input: "Hello, how are you?"
+    expected:
+      contains:
+        - "Echo"
+
+  - id: refund-001
+    input: "I want a refund for my order"
+    expected:
+      contains:
+        - "Echo"
+        - "refund"
+
+  - id: order-002
+    input: "Where is my order?"
+    expected:
+      contains:
+        - "Echo"
+        - "order"
+
+  - id: product-003
+    input: "What are your best products?"
+    expected:
+      contains:
+        - "Echo"
+        - "products"
+
+  - id: cancel-004
+    input: "I need to cancel my subscription"
+    expected:
+      contains:
+        - "Echo"
+        - "cancel"

@@ -1,0 +1,40 @@
+name: RAG Agent Evaluation
+description: >
+  Evaluates Retrieval-Augmented Generation agent quality.
+  Tests groundedness, response relevance, and citation accuracy.
+
+agent:
+  type: echo
+  response_template: "Based on the documents provided: {input}"
+
+evaluators:
+  - contains
+  - hallucination
+
+cases:
+  - id: rag-001
+    input: "Summarize the quarterly results"
+    context:
+      documents:
+        - "Q3 2024 revenue was $2.4B, up 12% year-over-year. Net income grew 18% to $340M."
+    expected:
+      contains:
+        - "quarterly"
+
+  - id: rag-002
+    input: "What were the key risks mentioned?"
+    context:
+      documents:
+        - "Key risks include supply chain disruptions, regulatory changes in the EU, and competitive pressure from new market entrants."
+    expected:
+      contains:
+        - "risks"
+
+  - id: rag-003
+    input: "What is the company's AI strategy?"
+    context:
+      documents:
+        - "The company plans to invest $500M in AI infrastructure over the next 3 years, focusing on supply chain optimization and customer personalization."
+    expected:
+      contains:
+        - "AI"

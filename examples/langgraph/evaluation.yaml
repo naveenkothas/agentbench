@@ -1,0 +1,18 @@
+name: LangGraph Agent Evaluation
+
+agent:
+  type: http
+  url: "http://localhost:8100/agent/run"
+  response_field: "output"
+  timeout: 30
+
+evaluators:
+  - contains
+
+cases:
+  - id: research-001
+    input: "What are the main benefits of supply chain digitization?"
+    expected:
+      contains:
+        - supply chain
+      max_latency_ms: 30000

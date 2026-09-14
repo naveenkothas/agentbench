@@ -1,0 +1,40 @@
+name: Hallucination Detection
+description: >
+  Evaluates whether the agent stays grounded to provided context.
+  Checks that responses don't introduce unsupported claims.
+
+agent:
+  type: echo
+  response_template: "Based on the provided information: {input}"
+
+evaluators:
+  - hallucination
+  - contains
+
+cases:
+  - id: grounded-001
+    input: "What is the return policy?"
+    context:
+      documents:
+        - "Our return policy allows returns within 30 days of purchase with a valid receipt."
+    expected:
+      contains:
+        - "return"
+
+  - id: grounded-002
+    input: "What are the store hours?"
+    context:
+      documents:
+        - "The store is open Monday to Friday, 9 AM to 6 PM. Closed on weekends."
+    expected:
+      contains:
+        - "store"
+
+  - id: grounded-003
+    input: "Do you offer free shipping?"
+    context:
+      documents:
+        - "Free shipping is available on orders over $50."
+    expected:
+      contains:
+        - "shipping"
