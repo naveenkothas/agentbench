@@ -84,11 +84,15 @@ class LLMJudgeEvaluator(BaseEvaluator):
         if isinstance(context_docs, list):
             context_docs = "\n".join(context_docs)
 
+        # Built outside the f-string: Python 3.11 forbids backslashes in
+        # f-string expressions.
+        context_block = "Context:\n" + context_docs if context_docs else ""
+
         user_message = f"""Criteria: {criteria_description}
 
 Question: {case.input}
 
-{"Context:\n" + context_docs if context_docs else ""}
+{context_block}
 
 Expected (reference): {case.expected.response or "(none provided)"}
 
