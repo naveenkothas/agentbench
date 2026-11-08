@@ -7,14 +7,12 @@ from __future__ import annotations
 
 import json
 from datetime import datetime
-from pathlib import Path
-from typing import Optional
 
 from sqlalchemy import Column, DateTime, Float, Integer, String, Text, select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
-from agentbench.core.models import EvalRun, RunStatus
+from agentbench.core.models import EvalRun
 
 
 class Base(DeclarativeBase):
@@ -55,6 +53,17 @@ class SQLiteStore:
         async with self.engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
 
+    async def close(self) -> None:
+        """Close all database connections held by this store."""
+        await self.engine.dispose()
+
+    async def __aenter__(self) -> SQLiteStore:
+        await self.init()
+        return self
+
+    async def __aexit__(self, *exc_info: object) -> None:
+        await self.close()
+
     async def save_run(self, run: EvalRun) -> None:
         """Persist an EvalRun to the database."""
         async with self.async_session() as session:
@@ -77,7 +86,7 @@ class SQLiteStore:
             session.add(record)
             await session.commit()
 
-    async def get_run(self, run_id: str) -> Optional[EvalRunRecord]:
+    async def get_run(self, run_id: str) -> EvalRunRecord | None:
         """Retrieve a single run by ID."""
         async with self.async_session() as session:
             result = await session.execute(

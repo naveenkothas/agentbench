@@ -26,6 +26,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: pip
 
       # Install from this checkout. "agentbench" is not published on PyPI,
       # so `pip install agentbench` left no `agentbench` command on the runner.
@@ -35,14 +36,17 @@ jobs:
           pip install -e ".[openai]"
 
       # These suites work with the built-in echo adapter (no API key needed)
-      # and gate the build.
-      - name: Run gated evaluation suites
+      # and gate the build. `validate` checks the most recent run, so each
+      # suite is validated straight after it runs.
+      - name: Evaluate basic suite (90% minimum)
         run: |
           agentbench run evals/basic.yaml
-          agentbench run evals/tool-calling.yaml
+          agentbench validate --minimum-score 0.90
 
-      - name: Enforce quality gate (90% minimum)
-        run: agentbench validate --minimum-score 0.90
+      - name: Evaluate tool-calling suite (90% minimum)
+        run: |
+          agentbench run evals/tool-calling.yaml
+          agentbench validate --minimum-score 0.90
 
       # Groundedness suites need a real LLM agent: the echo adapter only repeats
       # the question, so it can never pass them. Reported, but not blocking,

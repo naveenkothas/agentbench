@@ -7,13 +7,9 @@ simple HTML dashboard for viewing results in a browser.
 from __future__ import annotations
 
 import json
-from typing import Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
-from pydantic import BaseModel
-
-from agentbench.core.models import EvalRun, EvalResult
 
 
 def create_app() -> FastAPI:

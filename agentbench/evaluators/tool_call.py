@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Any
 
 from agentbench.core.base_evaluator import BaseEvaluator
-from agentbench.core.models import AgentResult, EvalCase, EvaluatorScore, ToolCall
+from agentbench.core.models import AgentResult, EvalCase, EvaluatorScore
 
 
 def _match_args(expected: dict[str, Any], actual: dict[str, Any]) -> tuple[bool, str]:

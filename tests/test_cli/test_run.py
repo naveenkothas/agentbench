@@ -1,10 +1,10 @@
 """Tests for the CLI run command."""
+
 import pytest
-from click.testing import CliRunner
-from agentbench.cli.main import cli
-import os
-import tempfile
 import yaml
+from click.testing import CliRunner
+
+from agentbench.cli.main import cli
 
 
 @pytest.fixture

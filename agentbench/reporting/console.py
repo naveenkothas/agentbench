@@ -3,11 +3,10 @@ Rich-powered console reporter for evaluation results.
 """
 from __future__ import annotations
 
+from rich import box
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-from rich.text import Text
-from rich import box
 
 from agentbench.core.models import EvalResult, EvalRun
 

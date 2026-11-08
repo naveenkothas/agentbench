@@ -1,5 +1,6 @@
 """Tests for EchoAdapter."""
 import pytest
+
 from agentbench.adapters.echo import EchoAdapter
 
 

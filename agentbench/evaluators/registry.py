@@ -1,21 +1,21 @@
 """Registry for evaluators."""
 from __future__ import annotations
 
-from typing import Any, Type
+from typing import Any
 
 from agentbench.core.base_evaluator import BaseEvaluator
 
-_REGISTRY: dict[str, Type[BaseEvaluator]] = {}
+_REGISTRY: dict[str, type[BaseEvaluator]] = {}
 
 
 class EvaluatorRegistry:
     @classmethod
-    def register(cls, evaluator_class: Type[BaseEvaluator]) -> Type[BaseEvaluator]:
+    def register(cls, evaluator_class: type[BaseEvaluator]) -> type[BaseEvaluator]:
         _REGISTRY[evaluator_class.name] = evaluator_class
         return evaluator_class
 
     @classmethod
-    def get(cls, name: str) -> Type[BaseEvaluator]:
+    def get(cls, name: str) -> type[BaseEvaluator]:
         if name not in _REGISTRY:
             available = ", ".join(_REGISTRY.keys())
             raise ValueError(
@@ -34,14 +34,14 @@ class EvaluatorRegistry:
 
 
 def _register_builtins() -> None:
-    from agentbench.evaluators.exact_match import ExactMatchEvaluator
     from agentbench.evaluators.contains import ContainsEvaluator
-    from agentbench.evaluators.tool_call import ToolCallEvaluator
-    from agentbench.evaluators.latency import LatencyEvaluator
     from agentbench.evaluators.cost import CostEvaluator
-    from agentbench.evaluators.json_schema import JSONSchemaEvaluator
+    from agentbench.evaluators.exact_match import ExactMatchEvaluator
     from agentbench.evaluators.hallucination import HallucinationEvaluator
+    from agentbench.evaluators.json_schema import JSONSchemaEvaluator
+    from agentbench.evaluators.latency import LatencyEvaluator
     from agentbench.evaluators.llm_judge import LLMJudgeEvaluator
+    from agentbench.evaluators.tool_call import ToolCallEvaluator
 
     for cls in [
         ExactMatchEvaluator, ContainsEvaluator, ToolCallEvaluator,

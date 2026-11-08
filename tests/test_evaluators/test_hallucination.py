@@ -1,5 +1,6 @@
 """Tests for HallucinationEvaluator."""
 import pytest
+
 from agentbench.core.models import AgentResult, EvalCase, ExpectedOutput
 from agentbench.evaluators.hallucination import HallucinationEvaluator, _simple_overlap_score
 

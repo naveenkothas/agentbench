@@ -6,24 +6,24 @@ in YAML evaluation files.
 """
 from __future__ import annotations
 
-from typing import Any, Type
+from typing import Any
 
 from agentbench.adapters.base import AgentAdapter
 
-_REGISTRY: dict[str, Type[AgentAdapter]] = {}
+_REGISTRY: dict[str, type[AgentAdapter]] = {}
 
 
 class AdapterRegistry:
     """Central registry for all agent adapters."""
 
     @classmethod
-    def register(cls, adapter_class: Type[AgentAdapter]) -> Type[AgentAdapter]:
+    def register(cls, adapter_class: type[AgentAdapter]) -> type[AgentAdapter]:
         """Register an adapter class. Can be used as a decorator."""
         _REGISTRY[adapter_class.adapter_type] = adapter_class
         return adapter_class
 
     @classmethod
-    def get(cls, adapter_type: str) -> Type[AgentAdapter]:
+    def get(cls, adapter_type: str) -> type[AgentAdapter]:
         if adapter_type not in _REGISTRY:
             available = ", ".join(_REGISTRY.keys())
             raise ValueError(

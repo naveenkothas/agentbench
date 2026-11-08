@@ -1,5 +1,6 @@
 """Tests for LatencyEvaluator."""
 import pytest
+
 from agentbench.core.models import AgentResult, EvalCase, ExpectedOutput
 from agentbench.evaluators.latency import LatencyEvaluator
 

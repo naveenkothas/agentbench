@@ -1,5 +1,6 @@
 """Tests for ContainsEvaluator."""
 import pytest
+
 from agentbench.core.models import AgentResult, EvalCase, ExpectedOutput
 from agentbench.evaluators.contains import ContainsEvaluator
 
