@@ -51,6 +51,12 @@ CRITERIA_PROMPTS: dict[str, str] = {
 }
 
 
+def _default_provider() -> str:
+    from agentbench.core.config import get_settings
+
+    return get_settings().judge_provider or "openai"
+
+
 class LLMJudgeEvaluator(BaseEvaluator):
     """
     Uses an LLM to evaluate agent responses.
@@ -58,13 +64,17 @@ class LLMJudgeEvaluator(BaseEvaluator):
     Config options::
 
         criteria: correctness  # or relevance, groundedness, instruction_following, safety
-        model: gpt-4o-mini     # judge model
-        provider: openai       # openai or anthropic
+        model: gpt-4o-mini     # judge model (openai / anthropic)
+        provider: openai       # openai, azure_openai or anthropic
+                               # (default: AGENTBENCH_JUDGE_PROVIDER, else openai)
+        deployment: my-gpt4o   # azure_openai only (default: AZURE_OPENAI_DEPLOYMENT)
+        auth: api_key          # azure_openai only: api_key or entra
         threshold: 0.7         # minimum passing score
         system_prompt: "..."   # override the default judge prompt
 
-    Requires an API key for the judge provider:
-        OPENAI_API_KEY or ANTHROPIC_API_KEY
+    Requires credentials for the judge provider:
+        OPENAI_API_KEY, ANTHROPIC_API_KEY, or AZURE_OPENAI_ENDPOINT plus
+        AZURE_OPENAI_API_KEY (or Microsoft Entra ID with auth: entra)
     """
 
     name = "llm_judge"
@@ -72,7 +82,7 @@ class LLMJudgeEvaluator(BaseEvaluator):
     async def evaluate(self, result: AgentResult, case: EvalCase) -> EvaluatorScore:
         criteria = self.config.get("criteria", "correctness")
         threshold = self.config.get("threshold", 0.7)
-        provider = self.config.get("provider", "openai")
+        provider = self.config.get("provider") or _default_provider()
 
         system_prompt = self.config.get(
             "system_prompt",
@@ -133,13 +143,15 @@ Evaluate the agent response against the criteria."""
 
         if provider == "openai":
             return await self._call_openai(
-                settings.judge_model or "gpt-4o-mini",
+                self.config.get("model") or settings.judge_model or "gpt-4o-mini",
                 system_prompt,
                 user_message,
             )
+        elif provider == "azure_openai":
+            return await self._call_azure_openai(settings, system_prompt, user_message)
         elif provider == "anthropic":
             return await self._call_anthropic(
-                settings.judge_model or "claude-3-haiku-20240307",
+                self.config.get("model") or settings.judge_model or "claude-3-haiku-20240307",
                 system_prompt,
                 user_message,
             )
@@ -164,6 +176,38 @@ Evaluate the agent response against the criteria."""
             response_format={"type": "json_object"},
         )
         return response.choices[0].message.content or "{}"
+
+    async def _call_azure_openai(self, settings: Any, system: str, user: str) -> str:
+        from agentbench.adapters.azure_openai_adapter import (
+            create_azure_client,
+            resolve_azure_settings,
+        )
+
+        # Evaluator config wins; otherwise use AZURE_OPENAI_* settings (incl. .env).
+        azure = resolve_azure_settings({
+            "endpoint": self.config.get("endpoint") or settings.azure_openai_endpoint,
+            "deployment": self.config.get("deployment") or settings.azure_openai_deployment,
+            "api_version": self.config.get("api_version") or settings.azure_openai_api_version,
+            "api_key": self.config.get("api_key") or settings.azure_openai_api_key,
+            "auth": self.config.get("auth", "api_key"),
+        })
+        client, credential = create_azure_client(azure)
+        try:
+            response = await client.chat.completions.create(
+                model=azure["deployment"],
+                messages=[
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user},
+                ],
+                temperature=0,
+                max_tokens=300,
+                response_format={"type": "json_object"},
+            )
+            return response.choices[0].message.content or "{}"
+        finally:
+            await client.close()
+            if credential is not None:
+                await credential.close()
 
     async def _call_anthropic(self, model: str, system: str, user: str) -> str:
         try:

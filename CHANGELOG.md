@@ -6,6 +6,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+- `azure_openai` adapter for agents on Azure OpenAI deployments, with API-key
+  or Microsoft Entra ID (`auth: entra`) authentication, tool calling, and
+  `AZURE_OPENAI_*` environment-variable configuration. Install with
+  `pip install "agentbench[azure]"`.
+- `azure_openai` provider for the `llm_judge` evaluator.
+- `examples/azure-openai`.
+
 ### Fixed
 - CI and Agent Evaluation workflows now install from source and pass on
   Python 3.11 and 3.12.
@@ -15,6 +23,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/).
   was not a dependency; it is now required.
 - `SQLiteStore` now closes its database connections (`close()` and `async with`).
 - The quality gate validates each evaluation suite, not only the last one run.
+- `llm_judge` always failed on a clean install: `pydantic-settings` was not a
+  dependency. Its `provider` and `model` options, and `AGENTBENCH_JUDGE_PROVIDER`,
+  were also ignored.
+- OpenAI cost estimates now price dated model versions (e.g.
+  `gpt-4o-mini-2024-07-18`), and the OpenAI adapter closes its client on teardown.
 
 ### Removed
 - Unused legacy modules that could not be imported: `adapters.builtin`,

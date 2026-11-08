@@ -1,0 +1,38 @@
+name: Azure OpenAI Customer Support Agent
+description: >
+  Evaluates a support agent on an Azure OpenAI deployment.
+  Connection settings come from AZURE_OPENAI_* environment variables.
+
+agent:
+  type: azure_openai
+  # deployment: my-gpt-4o-mini   # or set AZURE_OPENAI_DEPLOYMENT
+  # auth: entra                  # use Microsoft Entra ID instead of an API key
+  model: gpt-4o-mini             # underlying model, for cost estimates
+  system_prompt: >
+    You are a helpful customer support agent for an online store.
+    Keep answers short and mention the relevant policy.
+  temperature: 0
+  max_tokens: 300
+
+evaluators:
+  - contains
+  - latency
+  - cost
+
+cases:
+  - id: refund-001
+    input: "I want a refund for order 5542"
+    expected:
+      contains:
+        - "refund"
+      max_latency_ms: 10000
+      max_cost_usd: 0.01
+
+  - id: password-002
+    input: "How do I reset my password?"
+    expected:
+      contains:
+        - "password"
+      not_contains:
+        - "I cannot help"
+      max_latency_ms: 10000

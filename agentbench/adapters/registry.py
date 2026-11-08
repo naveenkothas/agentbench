@@ -45,6 +45,7 @@ class AdapterRegistry:
 
 # Register built-in adapters
 def _register_builtins() -> None:
+    from agentbench.adapters.azure_openai_adapter import AzureOpenAIAdapter
     from agentbench.adapters.echo import EchoAdapter
     from agentbench.adapters.http import HTTPAdapter
     from agentbench.adapters.openai_adapter import OpenAIAdapter
@@ -52,6 +53,7 @@ def _register_builtins() -> None:
     AdapterRegistry.register(EchoAdapter)
     AdapterRegistry.register(HTTPAdapter)
     AdapterRegistry.register(OpenAIAdapter)
+    AdapterRegistry.register(AzureOpenAIAdapter)
 
 
 _register_builtins()

@@ -104,7 +104,13 @@ async def _run(
                 progress_callback=progress,
             )
 
-            eval_run = await runner.run()
+            try:
+                eval_run = await runner.run()
+            except (ValueError, ImportError) as e:
+                # Adapter misconfiguration (e.g. missing credentials or extras).
+                console.print(f"[bold red]✗ {dataset.name}:[/bold red] {e}")
+                all_passed = False
+                continue
             eval_run.name = dataset.name
 
             # Clear progress line

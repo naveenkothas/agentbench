@@ -163,6 +163,25 @@ export OPENAI_API_KEY=sk-...
 agentbench run evals/my-agent.yaml
 ```
 
+### Azure OpenAI
+
+```yaml
+agent:
+  type: azure_openai
+  deployment: gpt-4o-mini       # your Azure deployment name
+  system_prompt: "You are a helpful customer support agent."
+  temperature: 0
+```
+
+```bash
+pip install "agentbench[azure]"
+export AZURE_OPENAI_ENDPOINT=https://my-resource.openai.azure.com
+export AZURE_OPENAI_API_KEY=...   # or set `auth: entra` to use Microsoft Entra ID
+agentbench run evals/my-agent.yaml
+```
+
+See [Integrations](docs/integrations.md#azure-openai) for Entra ID, API versions and the Azure LLM judge.
+
 ### HTTP Agent (any deployed agent)
 
 ```yaml
@@ -374,7 +393,7 @@ agentbench/
 | Any HTTP agent | `http` | ✅ Available |
 | Echo (testing/demo) | `echo` | ✅ Available |
 | Anthropic | `anthropic` | 🔜 [Contribute](CONTRIBUTING.md) |
-| Azure OpenAI | `azure_openai` | 🔜 [Contribute](CONTRIBUTING.md) |
+| Azure OpenAI | `azure_openai` | ✅ Available |
 | LangGraph | `langgraph` | 🔜 [Contribute](CONTRIBUTING.md) |
 | LangChain | `langchain` | 🔜 [Contribute](CONTRIBUTING.md) |
 | CrewAI | `crewai` | 🔜 [Contribute](CONTRIBUTING.md) |
@@ -390,7 +409,8 @@ Adding a new adapter is a great **good-first-issue**. See [CONTRIBUTING.md](CONT
 v0.1  ✅ Core evaluation engine, CLI, 7 built-in evaluators, YAML datasets
       ✅ OpenAI and HTTP adapters, SQLite persistence, web dashboard
 
-v0.2  □  Anthropic, Azure OpenAI, LangGraph adapters
+v0.2  ✅ Azure OpenAI adapter (API key and Microsoft Entra ID)
+      □  Anthropic, LangGraph adapters
       □  Evaluation comparison improvements
       □  CSV and JSON dataset formats
       □  pytest plugin (agentbench.pytest)
@@ -416,7 +436,7 @@ We'd love your contributions. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup i
 **Good first issues:**
 
 - [ ] Add Anthropic adapter ([#2](https://github.com/your-org/agentbench/issues/2))
-- [ ] Add Azure OpenAI adapter ([#3](https://github.com/your-org/agentbench/issues/3))
+- [x] Add Azure OpenAI adapter ([#3](https://github.com/your-org/agentbench/issues/3))
 - [ ] Add LangGraph adapter ([#4](https://github.com/your-org/agentbench/issues/4))
 - [ ] Add CrewAI adapter ([#5](https://github.com/your-org/agentbench/issues/5))
 - [ ] Add toxicity evaluator ([#6](https://github.com/your-org/agentbench/issues/6))

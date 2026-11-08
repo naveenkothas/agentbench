@@ -4,6 +4,7 @@ Requires: pip install agentbench[openai]
 """
 from __future__ import annotations
 
+import json
 import time
 from typing import Any
 
@@ -17,6 +18,24 @@ OPENAI_COSTS = {
     "gpt-4-turbo": {"prompt": 0.01, "completion": 0.03},
     "gpt-3.5-turbo": {"prompt": 0.0005, "completion": 0.0015},
 }
+
+
+def lookup_costs(model: str | None) -> dict[str, float]:
+    """
+    Return per-1K-token pricing for a model name.
+
+    Matches exact names first, then the longest known prefix, so dated
+    versions such as ``gpt-4o-mini-2024-07-18`` price as ``gpt-4o-mini``.
+    Unknown models cost 0.
+    """
+    if not model:
+        return {"prompt": 0.0, "completion": 0.0}
+    if model in OPENAI_COSTS:
+        return OPENAI_COSTS[model]
+    for known in sorted(OPENAI_COSTS, key=len, reverse=True):
+        if model.startswith(known):
+            return OPENAI_COSTS[known]
+    return {"prompt": 0.0, "completion": 0.0}
 
 
 class OpenAIAdapter(AgentAdapter):
@@ -39,18 +58,34 @@ class OpenAIAdapter(AgentAdapter):
         super().__init__(config)
         self._client: Any = None
 
-    async def setup(self) -> None:
+    def _create_client(self) -> Any:
         try:
             from openai import AsyncOpenAI
         except ImportError:
-            raise ImportError("Install openai: pip install agentbench[openai]")
-        self._client = AsyncOpenAI()
+            raise ImportError("Install openai: pip install agentbench[openai]") from None
+        return AsyncOpenAI()
+
+    def _model_param(self) -> str:
+        """Value sent as ``model`` in the chat completions request."""
+        return self.config.get("model", "gpt-4o-mini")
+
+    def _pricing_model(self, response: Any) -> str | None:
+        """Model name used to estimate cost."""
+        return self.config.get("model", "gpt-4o-mini")
+
+    async def setup(self) -> None:
+        self._client = self._create_client()
+
+    async def teardown(self) -> None:
+        if self._client is not None:
+            await self._client.close()
+            self._client = None
 
     async def run(self, input: str, context: dict[str, Any]) -> AgentResult:
         if self._client is None:
             await self.setup()
 
-        model = self.config.get("model", "gpt-4o-mini")
+        model = self._model_param()
         system_prompt = self.config.get("system_prompt", "You are a helpful assistant.")
         tools = self.config.get("tools", [])
         temperature = self.config.get("temperature", 0)
@@ -74,12 +109,12 @@ class OpenAIAdapter(AgentAdapter):
         response = await self._client.chat.completions.create(**kwargs)
         elapsed_ms = (time.monotonic() - start) * 1000
 
-        message = response.choices[0].message
+        choice = response.choices[0]
+        message = choice.message
         response_text = message.content or ""
 
         tool_calls: list[ToolCall] = []
         if message.tool_calls:
-            import json
             for tc in message.tool_calls:
                 tool_calls.append(
                     ToolCall(
@@ -92,7 +127,7 @@ class OpenAIAdapter(AgentAdapter):
         completion_tokens = response.usage.completion_tokens if response.usage else 0
         total_tokens = response.usage.total_tokens if response.usage else 0
 
-        costs = OPENAI_COSTS.get(model, {"prompt": 0, "completion": 0})
+        costs = lookup_costs(self._pricing_model(response))
         cost = (
             prompt_tokens / 1000 * costs["prompt"]
             + completion_tokens / 1000 * costs["completion"]
@@ -106,5 +141,9 @@ class OpenAIAdapter(AgentAdapter):
             completion_tokens=completion_tokens,
             total_tokens=total_tokens,
             estimated_cost_usd=cost,
-            metadata={"model": model, "adapter": "openai"},
+            metadata={
+                "model": model,
+                "adapter": self.adapter_type,
+                "finish_reason": getattr(choice, "finish_reason", None),
+            },
         )

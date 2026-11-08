@@ -6,7 +6,7 @@ from __future__ import annotations
 from functools import lru_cache
 
 from pydantic import Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     azure_openai_api_key: str = Field("", alias="AZURE_OPENAI_API_KEY")
     azure_openai_endpoint: str = Field("", alias="AZURE_OPENAI_ENDPOINT")
     azure_openai_deployment: str = Field("", alias="AZURE_OPENAI_DEPLOYMENT")
+    azure_openai_api_version: str = Field("", alias="AZURE_OPENAI_API_VERSION")
 
     # LLM Judge settings
     judge_model: str = Field("gpt-4o-mini", alias="AGENTBENCH_JUDGE_MODEL")
@@ -32,10 +33,7 @@ class Settings(BaseSettings):
     max_concurrency: int = Field(5, alias="AGENTBENCH_MAX_CONCURRENCY")
     default_timeout_sec: float = Field(30.0, alias="AGENTBENCH_TIMEOUT")
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        extra = "ignore"
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
 
 @lru_cache(maxsize=1)
